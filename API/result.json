@@ -1,0 +1,36 @@
+[
+  {
+    // like,
+    "_id": "642527c9bfcd487f9997d7ea",
+    "userId": "6424f1cb2cc87b19b0e2874e",
+    "firstName": "Mateus",
+    "lastName": "Silva",
+    "location": "brazil",
+    "description": "meu post de teste",
+    "picturePath": "star-wars.jpg",
+    "userPicturePath": "wallpaperflare.com_wallpaper.jpg",
+    "likes": { "6424f1cb2cc87b19b0e2874e": true },
+    "comments": [],
+    "createdAt": "2023-03-30T06:10:17.169Z",
+    "updatedAt": "2023-03-30T06:13:06.806Z",
+    "__v": 0
+  },
+  {
+    "_id": "640268824b01513b19bdcc2f",
+    "userId": "6401896ee1a1a35f70d7cca5",
+    "firstName": "Gerson",
+    "lastName": "Santos",
+    "location": "San Fran, CA",
+    "description": "meu post de teste",
+    "picturePath": "post7.jpeg",
+    "userPicturePath": "p11.jpeg",
+    "likes": {
+      "64026ab04b01513b19bdcc54": true,
+      "6424f1cb2cc87b19b0e2874e": true
+    },
+    "comments": [],
+    "createdAt": "2023-03-03T21:37:06.803Z",
+    "updatedAt": "2023-03-30T06:14:09.377Z",
+    "__v": 0
+  }
+]

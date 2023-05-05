@@ -1,0 +1,91 @@
+// This is your Prisma schema file
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  firstName     String
+  lastName      String
+  email         String   @unique
+  password      String
+  picturePath   String?
+  friends       String[]
+  location      String
+  occupation    String
+  viewedProfile Int?
+  impressions   Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+}
+
+model Post {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String
+  firstName       String
+  lastName        String
+  location        String
+  description     String
+  picturePath     String?
+  userPicturePath String?
+  likes           String[]
+  comments        String[]
+}
+
+model Comment {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  idPost String
+
+  friendId        String
+  firstName       String
+  userPicturePath String
+  comment         String
+}
+
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  action    String
+  status    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+
+  idFriend        String
+  userPicturePath String
+  firstName       String
+
+  idPost          String?
+  postPicturePath String?
+
+  contentComment String?
+}
+
+model Conversation {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  members   String[]
+  senderId       String
+  receiverId     String
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String
+  senderId       String
+  messageContent String
+  createdAt DateTime @default(now())
+}
+
+// Message:
+// - id conversa
+// - id User
+// - id sender
+// - messageContent
+// - createdAt
