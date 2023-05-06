@@ -39,7 +39,6 @@ const Conversation = ({ conversationsList }) => {
 
   }, [conversationsList, user.id])
 
-
   return (
     <Box>
       <WidgetWrapper

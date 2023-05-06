@@ -6,8 +6,9 @@ export class FindConversationUseCase {
     async execute(id: string){
         const conversation = await this.conversationRepository.findByConversation(id)
 
-        if(!conversation) throw new Error('Conversation not started')
-
+        if(!conversation) {
+            throw new Error('Conversation not started')
+        }
 
         return conversation
     }

@@ -15,7 +15,7 @@ import { SendOutlined } from "@mui/icons-material";
 import { MessageLeft, MessageRight } from "./Message";
 import { useSelector } from "react-redux";
 
-const ConversationFriend = ({ firstName, picturePath, currentChat }) => {
+const ConversationFriend = ({ firstName, picturePath, currentChat, event }) => {
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
   const { palette } = useTheme();
   const dark = palette.neutral.dark;
@@ -66,22 +66,22 @@ const ConversationFriend = ({ firstName, picturePath, currentChat }) => {
     });
   }, [messages]);
 
-  useEffect(() => {
-    const getAllMessages = async () => {
-      const response = await fetch(
-        `${import.meta.env.VITE_NODE_API_URL}/messages/${currentChat?.id}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  const getAllMessages = async () => {
+    const response = await fetch(
+      `${import.meta.env.VITE_NODE_API_URL}/messages/${currentChat?.id}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-      const data = await response.json();
-      setMessages(data);
-    };
+    const data = await response.json();
+    setMessages(data);
+  };
+  useEffect(() => {
     getAllMessages();
   }, [currentChat]);
 

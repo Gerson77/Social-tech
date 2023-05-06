@@ -8,6 +8,8 @@ export default function useMessage({ currentChat }) {
 
     const token = useSelector((state) => state.token);
   
+  console.log(currentChat)
+
     const handleSubmit = async (e) => {
       e.preventDefault();
   
