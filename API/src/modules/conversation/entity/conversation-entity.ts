@@ -1,22 +1,15 @@
-
 type IConversation = {
-    members: string[]
-    senderId: string
-    receiverId: string
-}
+  members: string[];
+};
 export class Conversation {
-    members: string[]
-    senderId: string
-    receiverId: string
+  members: string[];
 
-    private constructor(data: IConversation){
-        this.members = data.members
-        this.senderId = data.senderId
-        this.receiverId = data.receiverId
-    }
+  private constructor(data: IConversation) {
+    this.members = data.members;
+  }
 
-    static async createConversation(data: IConversation) {
-        const conversation = new Conversation(data)
-        return conversation
-    }
+  static async createConversation(data: IConversation) {
+    const conversation = new Conversation(data);
+    return conversation;
+  }
 }

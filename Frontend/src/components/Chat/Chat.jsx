@@ -34,6 +34,10 @@ const Chat = () => {
   const [friend, setFriend] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [conversation, setConversation] = useState([]);
+  const [newConversation, setNewConversation] = useState({
+    id: "000000001",
+    members: ["senderId", "receiverId"],
+  });
 
   // ConversationFriend
   const scrollRef = useRef();
@@ -44,13 +48,17 @@ const Chat = () => {
   const handleConversation = async (senderId, receiverId) => {
     const dataPreLoad = {
       id: "000000001",
-      senderId: senderId,
-      receiverId: receiverId,
       members: [senderId, receiverId],
     };
 
+    const verifyConversationExist = await getOneConversation(
+      senderId,
+      receiverId
+    );
+    setNewConversation(verifyConversationExist);
+
     const conversationExists = conversation.find(
-      (conver) => conver.receiverId === receiverId
+      (seila) => seila.id === verifyConversationExist.id
     );
 
     if (!conversationExists) {
@@ -63,10 +71,30 @@ const Chat = () => {
     await getByOneUser(conversationExists);
   };
 
-  // obtem os dados do usuário clicado
-  const getByOneUser = async (c) => {
+  // get one Conversation
+  const getOneConversation = async (senderId, receiverId) => {
     const response = await fetch(
-      `${import.meta.env.VITE_NODE_API_URL}/users/${c.receiverId}`,
+      `${
+        import.meta.env.VITE_NODE_API_URL
+      }/conversation/${senderId}/${receiverId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const result = await response.json();
+    return result;
+  };
+
+  // obtem os dados do usuário clicado
+  const getByOneUser = async (dataFriend) => {
+    const friendId = dataFriend.members.find((f) => f !== user.id);
+
+    const response = await fetch(
+      `${import.meta.env.VITE_NODE_API_URL}/users/${friendId}`,
       {
         method: "GET",
         headers: {
@@ -80,7 +108,7 @@ const Chat = () => {
 
     // seta os dados do amigo especificado
     setFriend(data);
-    setCurrentChat(c);
+    setCurrentChat(dataFriend);
   };
 
   // pega todas as conversa do usuário logado
@@ -112,7 +140,6 @@ const Chat = () => {
     if (newMessage === "") return;
 
     const conversationId = await createNewConversation(user.id, friend.id);
-    console.log(conversationId)
 
     const response = await fetch(
       `${import.meta.env.VITE_NODE_API_URL}/messages`,
@@ -133,6 +160,7 @@ const Chat = () => {
     const result = await response.json();
 
     setMessages([...messages, result]);
+    setNewMessage("");
   };
 
   // recupera todas as mensagem da conversa

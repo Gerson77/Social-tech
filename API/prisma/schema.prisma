@@ -70,8 +70,6 @@ model Notification {
 model Conversation {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   members   String[]
-  senderId       String
-  receiverId     String
   createdAt DateTime @default(now())
 }
 
@@ -82,10 +80,3 @@ model Message {
   messageContent String
   createdAt DateTime @default(now())
 }
-
-// Message:
-// - id conversa
-// - id User
-// - id sender
-// - messageContent
-// - createdAt

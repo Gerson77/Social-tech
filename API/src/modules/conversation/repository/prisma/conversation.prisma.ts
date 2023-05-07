@@ -3,33 +3,25 @@ import { Conversation } from "../../entity/conversation-entity";
 import { IConversationRepository } from "../conversation.repository";
 
 export class ConversationPrismaRepository implements IConversationRepository {
-  async findByConversationReceiver(
-    receiverId: string
-  ): Promise<Conversation | null> {
-    const receiverIdUser = await prismaClient.conversation.findFirst({
+  async findOneConversation(id: string): Promise<Conversation | null> {
+    const conversationsUser = await prismaClient.conversation.findFirst({
       where: {
-        receiverId: receiverId,
-      },
+        members: { 
+          hasEvery: id
+         }
+      }
     });
-    return receiverIdUser;
+
+    return conversationsUser
   }
 
   async findByConversation(id: string): Promise<Conversation[] | null> {
     const conversationsUser = await prismaClient.conversation.findMany({
       where: {
-        OR: [
-          {
-            senderId: {
-              contains: id,
-            },
-          },
-          {
-            receiverId: {
-              contains: id,
-            },
-          },
-        ],
-      },
+        members: { 
+          hasEvery: [id]
+         },
+      }
     });
 
     return conversationsUser;
@@ -37,8 +29,6 @@ export class ConversationPrismaRepository implements IConversationRepository {
   async createConversation(data: Conversation): Promise<Conversation> {
     const newConversation = await prismaClient.conversation.create({
       data: {
-        senderId: data.senderId,
-        receiverId: data.receiverId,
         members: data.members,
       },
     });
