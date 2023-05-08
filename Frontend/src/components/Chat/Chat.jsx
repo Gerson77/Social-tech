@@ -1,10 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import {
   Box,
   Divider,
   IconButton,
-  ImageList,
-  ImageListItem,
   InputBase,
   Paper,
   Typography,
@@ -20,209 +18,34 @@ import FriendsOnline from "./FriendsOnline";
 import UserImage from "../UserImage";
 import { MessageLeft, MessageRight } from "./Message";
 import { SendOutlined } from "@mui/icons-material";
+import useChat from "../../hooks/useChat";
+import {
+  AdviceConversationDefault,
+  AdviceMessageDefault,
+} from "./AdviceDefault";
 
-const Chat = () => {
+export default function Chat() {
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
   const { palette } = useTheme();
   const dark = palette.neutral.dark;
   const main = palette.neutral.main;
   const light = palette.neutral.light;
+
   const user = useSelector((state) => state.user);
-  const token = useSelector((state) => state.token);
 
-  // inicia um conversa
-  const [friend, setFriend] = useState([]);
-  const [currentChat, setCurrentChat] = useState(null);
-  const [conversation, setConversation] = useState([]);
-  const [newConversation, setNewConversation] = useState({
-    id: "000000001",
-    members: ["senderId", "receiverId"],
-  });
-
-  // ConversationFriend
-  const scrollRef = useRef();
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
-
-  // Adiciona a próxima conversa nas lista
-  const handleConversation = async (senderId, receiverId) => {
-    const dataPreLoad = {
-      id: "000000001",
-      members: [senderId, receiverId],
-    };
-
-    const verifyConversationExist = await getOneConversation(
-      senderId,
-      receiverId
-    );
-    setNewConversation(verifyConversationExist);
-
-    const conversationExists = conversation.find(
-      (seila) => seila.id === verifyConversationExist.id
-    );
-
-    if (!conversationExists) {
-      setConversation([...conversation, dataPreLoad]);
-      await getByOneUser(dataPreLoad);
-      return;
-    }
-
-    await getAllConversation(senderId);
-    await getByOneUser(conversationExists);
-  };
-
-  // get one Conversation
-  const getOneConversation = async (senderId, receiverId) => {
-    const response = await fetch(
-      `${
-        import.meta.env.VITE_NODE_API_URL
-      }/conversation/${senderId}/${receiverId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const result = await response.json();
-    return result;
-  };
-
-  // obtem os dados do usuário clicado
-  const getByOneUser = async (dataFriend) => {
-    const friendId = dataFriend.members.find((f) => f !== user.id);
-
-    const response = await fetch(
-      `${import.meta.env.VITE_NODE_API_URL}/users/${friendId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    // seta os dados do amigo especificado
-    setFriend(data);
-    setCurrentChat(dataFriend);
-  };
-
-  // pega todas as conversa do usuário logado
-  const getAllConversation = async (idUser) => {
-    const response = await fetch(
-      `${import.meta.env.VITE_NODE_API_URL}/conversation/${idUser}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    setConversation(data);
-  };
-
-  // Carrega todas as conversas
-  useEffect(() => {
-    getAllConversation(user.id);
-  }, [user.id]);
-
-  // envia uma nova menssagem
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (newMessage === "") return;
-
-    const conversationId = await createNewConversation(user.id, friend.id);
-
-    const response = await fetch(
-      `${import.meta.env.VITE_NODE_API_URL}/messages`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          conversationId: conversationId.id,
-          senderId: user.id,
-          messageContent: newMessage,
-        }),
-      }
-    );
-
-    const result = await response.json();
-
-    setMessages([...messages, result]);
-    setNewMessage("");
-  };
-
-  // recupera todas as mensagem da conversa
-  const getAllMessages = async (currentChat) => {
-    const response = await fetch(
-      `${import.meta.env.VITE_NODE_API_URL}/messages/${currentChat?.id}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const data = await response.json();
-    setMessages(data);
-  };
-
-  // Carrega todas as messagens das conversas
-  useEffect(() => {
-    getAllMessages(currentChat);
-  }, [currentChat]);
-
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }, [messages]);
-
-  const handleKeyEnter = (e) => {
-    if (e.code === "Enter" || e.code === "NumpadEnter") {
-      return handleSubmit(e);
-    }
-  };
-
-  // criar uma nova conversa
-  const createNewConversation = async (senderId, receiverId) => {
-    const response = await fetch(
-      `${import.meta.env.VITE_NODE_API_URL}/conversation`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          senderId: senderId,
-          receiverId: receiverId,
-        }),
-      }
-    );
-
-    const result = await response.json();
-    return result;
-  };
-
-  // Obtem os dados do amigo e limpa conversas não iniciadas
-  const getConvesationCurrent = async (conversationValue) => {
-    await getByOneUser(conversationValue);
-    await getAllConversation(user.id);
-  };
+  const {
+    handleConversation,
+    getConvesationCurrent,
+    handleKeyEnter,
+    conversation,
+    currentChat,
+    friend,
+    messages,
+    newMessage,
+    setNewMessage,
+    handleSubmit,
+    scrollRef,
+  } = useChat();
 
   return (
     <Box>
@@ -257,34 +80,8 @@ const Chat = () => {
               ))}
             </>
           ) : (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                flexDirection: "column",
-                justifyContent: "center",
-                height: "76vh",
-                textAlign: "center",
-                borderRadius: "0.5rem",
-              }}
-            >
-              <ImageList
-                sx={{
-                  width: "20rem",
-                  display: "flex",
-                }}
-              >
-                <ImageListItem>
-                  <img
-                    src={`${
-                      import.meta.env.VITE_NODE_API_URL
-                    }/assets/conversations.png`}
-                    alt=""
-                  />
-                </ImageListItem>
-              </ImageList>
-              <Typography variant="h4">Inicie uma conversa</Typography>
-            </Box>
+            // message default
+            <AdviceConversationDefault />
           )}
         </Box>
         <Box
@@ -389,41 +186,8 @@ const Chat = () => {
               </Box>
             </>
           ) : (
-            <Box height="auto" minHeight="84vh">
-              <WidgetWrapper
-                sx={{
-                  width: "100%",
-                  height: "84vh",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  background: `radial-gradient(circle, ${light} 0%, ${palette.background.alt} 100%)`,
-                }}
-              >
-                <ImageList
-                  sx={{
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    ml: "8rem",
-                    borderRadius: "0.5rem",
-                  }}
-                >
-                  <ImageListItem>
-                    <img
-                      src={`${
-                        import.meta.env.VITE_NODE_API_URL
-                      }/assets/beginnerconversation.png`}
-                      alt=""
-                    />
-                  </ImageListItem>
-                </ImageList>
-                <Typography variant="h4" pb="6rem">
-                  Selecione um amigo para iniciar a conversa!
-                </Typography>
-              </WidgetWrapper>
-            </Box>
+            // Adivice message
+            <AdviceMessageDefault />
           )}
         </Box>
 
@@ -457,6 +221,4 @@ const Chat = () => {
       </Box>
     </Box>
   );
-};
-
-export default Chat;
+}
