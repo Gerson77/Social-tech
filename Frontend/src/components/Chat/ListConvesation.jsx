@@ -4,6 +4,7 @@ import FlexBetween from "../FlexBetween";
 import { useSelector } from "react-redux";
 import UserImage from "../UserImage";
 import { useEffect, useState } from "react";
+import useChat from "../../hooks/useChat";
 
 const Conversation = ({ conversationsList }) => {
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
@@ -12,13 +13,20 @@ const Conversation = ({ conversationsList }) => {
   const main = palette.neutral.main;
   const medium = palette.neutral.medium;
 
-  const [ userConversation, setUserConversation ] = useState()
+  const { latestMessage, getAllMessagesLoad } = useChat(conversationsList)
+
+  const [userConversation, setUserConversation] = useState();
 
   const user = useSelector((state) => state.user);
   const token = useSelector((state) => state.token);
 
+
+  const lastMessage = latestMessage.find(
+    (message) => message.id === conversationsList.latestMessage
+  );
+
   useEffect(() => {
-    const friendId = conversationsList.members.find(m => m !== user.id)
+    const friendId = conversationsList.members.find((m) => m !== user.id);
 
     const getByOneUser = async () => {
       const response = await fetch(
@@ -31,13 +39,16 @@ const Conversation = ({ conversationsList }) => {
           },
         }
       );
-  
-      const data = await response.json();
-      setUserConversation(data)
-    };
-    getByOneUser()
 
-  }, [conversationsList, user.id])
+      const data = await response.json();
+      setUserConversation(data);
+    };
+    getByOneUser();
+  }, [conversationsList, user.id]);
+
+  useEffect(() => {
+    getAllMessagesLoad(conversationsList);
+  }, [conversationsList]);
 
   return (
     <Box>
@@ -50,51 +61,63 @@ const Conversation = ({ conversationsList }) => {
           },
         }}
       >
-        <>
-          <FlexBetween>
-            <FlexBetween gap="1rem">
-              <UserImage image={userConversation?.picturePath ? userConversation.picturePath : 'userdefault.png'} size="55px" />
-              <Box>
+        <FlexBetween>
+          <FlexBetween gap="1rem" width="100%">
+            <UserImage
+              image={
+                userConversation?.picturePath
+                  ? userConversation.picturePath
+                  : "userdefault.png"
+              }
+              size="55px"
+            />
+            <Box
+              sx={{
+                width: "100%",
+                mb: "0.2rem",
+              }}
+            >
+              <Box
+                sx={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: "0.2rem",
+                }}
+              >
+                <Typography>{userConversation?.firstName}</Typography>
                 <Typography
-                  variant="h5"
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: "0.2rem",
+                    color: main,
+                    mx: "0.5rem",
                   }}
                 >
-                  <Typography
-                    sx={{
-                      display: "inline",
-                    }}
-                  >
-                    {userConversation?.firstName}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: main,
-                      display: "inline",
-                      mx: "0.5rem",
-                    }}
-                  >
-                    Hoje
-                  </Typography>
-                </Typography>
-                <Typography
-                  color={medium}
-                  fontSize="0.75rem"
-                  height="1rem"
-                  overflow="hidden"
-                >
-                  Lorem ipsum dolor sit amet consectetur adipisicing ... elit.
-                  Quas quis temporibus ut aliquam ipsum! Dolores quae aspernatur
-                  accusantium, ducimus rem, iste excepturi sunt dolorum sed
-                  quos, amet explicabo nam alias.
+                  {latestMessage ? (
+                    <>
+                      {new Date(conversationsList?.updatedAt).getHours() +
+                        ":" +
+                        new Date(conversationsList?.updatedAt).getMinutes()}
+                    </>
+                  ) : (
+                    ""
+                  )}
                 </Typography>
               </Box>
-            </FlexBetween>
+              <Typography
+                color={medium}
+                fontSize="0.75rem"
+                height="1rem"
+                overflow="hidden"
+              >
+                {lastMessage
+                  ? lastMessage.messageContent.length > 47
+                    ? lastMessage.messageContent.substring(0, 50) + " . . ."
+                    : lastMessage.messageContent
+                  : ""}
+              </Typography>
+            </Box>
           </FlexBetween>
-        </>
+        </FlexBetween>
       </WidgetWrapper>
     </Box>
   );

@@ -9,7 +9,7 @@ export class ConversationController {
         try{
             const {senderId, receiverId } = request.body
             const conversationUseCase = new ConversationUseCase(this.conversationRepository)
-            const result = await conversationUseCase.execute({ members: [ senderId, receiverId ]})
+            const result = await conversationUseCase.execute({ members: [ senderId, receiverId ], latestMessage: ''})
             return response.json(result)
         }catch(err: any) {
             return response.status(404).json({ error: err.message })

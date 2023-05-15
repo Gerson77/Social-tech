@@ -6,7 +6,7 @@ const initialState = {
   token: null,
   posts: [],
   postSingle: null,
-  notifications: []
+  notifications: [],
 };
 
 export const authSlice = createSlice({

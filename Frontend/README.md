@@ -13,23 +13,14 @@
 
 # Chat
 
-- Conversa será registrada aparti da primeira menssagem
-
-- Modelo de conversa:
-- dados:
-    Conversa:
-    - id
-    - members[]
-    - createdAt
-
-    Message:
-    - id conversa
-    - id User
-    - id sender
-    - messageContent
-    - createdAt
+- [x] Exibir a última mensagem do usuário na lista de conversa
+- [ ] Mostrar uma noticicação de mensagem nova na conversa
+- [ ] Responsivo da página de mensagens
+- [ ] pega as últimas 30 mensagens
+- [ ] Mensagens em tempo real
+- [ ] Refatorar a função handleSubmit
 
 
-post conversation
-post new Message
-get conversation
+---
+- [ ] Atualizar as mensagens da lista de conversa 
+- [ ] Mensagens em tempo real

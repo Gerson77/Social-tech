@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect, createRef, useState, useLayoutEffect, useRef } from "react";
 import {
   Box,
   Divider,
@@ -26,12 +26,11 @@ import {
 
 export default function Chat() {
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
-  const { palette } = useTheme();
-  const dark = palette.neutral.dark;
-  const main = palette.neutral.main;
-  const light = palette.neutral.light;
-
   const user = useSelector((state) => state.user);
+
+  const { palette } = useTheme();
+  const { dark, main, light } = palette.neutral;
+  const scrollRef = createRef();
 
   const {
     handleConversation,
@@ -44,8 +43,14 @@ export default function Chat() {
     newMessage,
     setNewMessage,
     handleSubmit,
-    scrollRef,
   } = useChat();
+
+  useLayoutEffect(() => {
+    const scrollToBottom = scrollRef.current;
+    if (scrollToBottom) {
+      scrollToBottom.scrollTop = scrollToBottom.scrollHeight;
+    }
+  });
 
   return (
     <Box>
@@ -139,9 +144,13 @@ export default function Chat() {
                         height: "100%",
                         p: "0.5rem",
                       }}
+                      ref={scrollRef}
                     >
-                      {messages.map((messageTarget) => (
-                        <Box key={messageTarget.id} ref={scrollRef}>
+                      {messages.map((messageTarget, index) => (
+                        <Box
+                          key={`${messageTarget.id} - ${index}`}
+                          ref={scrollRef}
+                        >
                           {messageTarget.senderId !== user.id ? (
                             <MessageLeft
                               message={messageTarget.messageContent}

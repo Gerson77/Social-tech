@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, createRef, useState } from "react";
 import { useSelector } from "react-redux";
+
+import io from "socket.io-client";
+const socket = io.connect("http://192.168.0.9:3001");
 
 export default function useChat() {
   const token = useSelector((state) => state.token);
@@ -10,15 +13,38 @@ export default function useChat() {
   const [conversation, setConversation] = useState([]);
 
   // ConversationFriend
-  const scrollRef = useRef();
+  const scrollRef = createRef();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+
+  // Todas as mensagens
+  const [latestMessage, setLatestMessage] = useState([]);
+  const [arrivalMessage, setArrivalMessage] = useState(null);
+
+  const getAllMessagesLoad = async (conversationsList) => {
+    const response = await fetch(
+      `${import.meta.env.VITE_NODE_API_URL}/messages/${conversationsList.id}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const data = await response.json();
+    setLatestMessage(data);
+  };
 
   // Adiciona a próxima conversa nas lista
   const handleConversation = async (senderId, receiverId) => {
     const dataPreLoad = {
       id: "000000001",
       members: [senderId, receiverId],
+      latestMessage: "",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const verifyConversationExist = await getOneConversation(
@@ -31,14 +57,18 @@ export default function useChat() {
         conversationCurrent.id === verifyConversationExist.id
     );
 
-    if (!conversationExists) {
+    const dataPreLoadExists = conversation.find(
+      (conversationCurrent) => conversationCurrent.id === dataPreLoad.id
+    );
+
+    if (!conversationExists && !dataPreLoadExists) {
       setConversation([...conversation, dataPreLoad]);
       await getByOneUser(dataPreLoad);
       return;
     }
 
     await getAllConversation(senderId);
-    await getByOneUser(conversationExists);
+    await getByOneUser(conversationExists || dataPreLoadExists);
   };
 
   // get one Conversation
@@ -105,11 +135,13 @@ export default function useChat() {
   }, [user.id]);
 
   // envia uma nova menssagem
-  const handleSubmit = async (e, friendId) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (newMessage === "") return;
 
     const conversationId = await createNewConversation(user.id, friend.id);
+
+    const receiverId = currentChat.members.find((member) => member !== user.id);
 
     const response = await fetch(
       `${import.meta.env.VITE_NODE_API_URL}/messages`,
@@ -129,9 +161,37 @@ export default function useChat() {
 
     const result = await response.json();
 
+    socket.emit("sendMessage", {
+      ...result,
+      receiverId,
+    });
+
     setMessages([...messages, result]);
     setNewMessage("");
   };
+
+  useEffect(() => {
+    socket.on("getMessage", (data) => {
+      setArrivalMessage({
+        senderId: data.senderId,
+        conversationId: data.conversationId,
+        messageContent: data.messageContent,
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    arrivalMessage &&
+      currentChat?.members.includes(arrivalMessage.senderId) &&
+      setMessages((prev) => [...prev, arrivalMessage]);
+  }, [arrivalMessage, currentChat]);
+
+  useEffect(() => {
+    socket.emit("addUser", user.id, conversation.id);
+    socket.on("getUsers", (users) => {
+      // console.log(users);
+    });
+  }, [user]);
 
   // recupera todas as mensagem da conversa
   const getAllMessages = async (currentChat) => {
@@ -154,12 +214,6 @@ export default function useChat() {
   useEffect(() => {
     getAllMessages(currentChat);
   }, [currentChat]);
-
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }, [messages]);
 
   const handleKeyEnter = (e) => {
     if (e.code === "Enter" || e.code === "NumpadEnter") {
@@ -206,5 +260,8 @@ export default function useChat() {
     setNewMessage,
     handleSubmit,
     scrollRef,
+    getAllMessages,
+    latestMessage,
+    getAllMessagesLoad,
   };
 }
